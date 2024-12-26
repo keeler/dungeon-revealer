@@ -86,6 +86,7 @@ const GraphQLMapTokenAddManyTokenInput = t.inputObjectType({
   fields: () => ({
     x: t.arg(t.NonNullInput(t.Float)),
     y: t.arg(t.NonNullInput(t.Float)),
+    shape: t.arg(t.NonNullInput(t.String)),
     color: t.arg(t.NonNullInput(t.String)),
     label: t.arg(t.NonNullInput(t.String)),
     radius: t.arg(t.Float),
@@ -444,6 +445,10 @@ const GraphQLMapTokenType = t.objectType<MapTokenEntity>({
     t.field({
       name: "y",
       type: t.NonNull(t.Float),
+    }),
+    t.field({
+      name: "shape",
+      type: t.NonNull(t.String),
     }),
     t.field({
       name: "rotation",

@@ -17,6 +17,7 @@ const TokenMarkerStateModel = io.type({
   tokenRadius: io.number,
   tokenColor: io.string,
   tokenText: io.string,
+  tokenShape: io.string,
   includeTokenText: io.boolean,
   tokenCounter: io.number,
   /* whether the value of tokenCounter should be appended to the tokenText */
@@ -27,6 +28,7 @@ type TokenMarkerState = {
   tokenRadius: SpringValue<number>;
   tokenColor: string;
   tokenText: string;
+  tokenShape: string;
   includeTokenText: boolean;
   tokenCounter: number;
   includeTokenCounter: boolean;
@@ -47,6 +49,7 @@ const createDefaultTokenMarkerState = (): TokenMarkerState => ({
   tokenColor: "#000000",
   tokenRadius: new SpringValue({ from: 100 }),
   tokenText: "",
+  tokenShape: "circle",
   includeTokenText: false,
   tokenCounter: 1,
   includeTokenCounter: false,
@@ -159,6 +162,7 @@ export const TokenMarkerMapTool: MapTool = {
                 mapId: tokenMarkerContext.currentMapId,
                 tokens: [
                   {
+                    shape: tokenMarkerContext.state.tokenShape,
                     color: tokenMarkerContext.state.tokenColor,
                     radius: tokenMarkerContext.state.tokenRadius.get(),
                     x,

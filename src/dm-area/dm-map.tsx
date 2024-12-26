@@ -43,7 +43,7 @@ import {
 } from "../map-tools/configure-grid-map-tool";
 import { MapControlInterface } from "../map-view";
 import { ConditionalWrap } from "../util";
-import { BrushShape, FogMode } from "../canvas-draw-utilities";
+import { BrushShape, FogMode, TokenShape } from "../canvas-draw-utilities";
 import {
   AreaSelectContext,
   AreaSelectContextProvider,
@@ -422,6 +422,37 @@ const TokenMarkerSettings = (): React.ReactElement => {
   const store = useCreateStore();
   const [, set] = useControls(
     () => ({
+      shape: levaPluginIconPicker({
+        label: "Token Shape",
+        value: tokenMarkerContext.state.tokenShape,
+        options: [
+          {
+            value: TokenShape.circle,
+            icon: <Icon.Circle boxSize="20px" />,
+            label: "Circle",
+          },
+          {
+            value: TokenShape.square,
+            icon: <Icon.Square boxSize="20px" />,
+            label: "Square",
+          },
+          {
+            value: TokenShape.cone,
+            icon: <Icon.ChevronLeft boxSize="20px" />,
+            label: "Cone",
+          },
+        ],
+        onChange: (tokenShape, _, { initial }) => {
+          if (initial) {
+            return;
+          }
+
+          tokenMarkerContext.setState((state) => ({
+            ...state,
+            tokenShape: tokenShape,
+          }));
+        },
+      }),
       radius: {
         type: LevaInputs.NUMBER,
         label: "Size",
@@ -1145,92 +1176,20 @@ const GridConfigurator = (props: {
       </Text>
       <HStack>
         <FormControl>
-          <FormLabel>X-Coordinate</FormLabel>
+          <FormLabel>Side Length</FormLabel>
           <InputGroup size="sm">
             <NumberInput
-              value={state.offsetX}
-              onChange={(valueString) => {
-                let offsetX = parseFloat(valueString);
-                if (Number.isNaN(offsetX)) {
-                  offsetX = 0;
-                }
-                setState((state) => ({
-                  ...state,
-                  offsetX,
-                }));
-              }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </InputGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>Y-Coordinate</FormLabel>
-          <InputGroup size="sm">
-            <NumberInput
-              value={state.offsetY}
-              onChange={(valueString) => {
-                let offsetY = parseFloat(valueString);
-                if (Number.isNaN(offsetY)) {
-                  offsetY = 0;
-                }
-                setState((state) => ({
-                  ...state,
-                  offsetY,
-                }));
-              }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </InputGroup>
-        </FormControl>
-      </HStack>
-      <HStack>
-        <FormControl>
-          <FormLabel>Column Width</FormLabel>
-          <InputGroup size="sm">
-            <NumberInput
+              // Use column width arbitrarily. Width and height will be set to same value.
               value={state.columnWidth}
               onChange={(valueString) => {
-                let columnWidth = parseFloat(valueString);
-                if (Number.isNaN(columnWidth)) {
-                  columnWidth = 0;
+                let sideLength = parseFloat(valueString);
+                if (Number.isNaN(sideLength)) {
+                  sideLength = 0;
                 }
                 setState((state) => ({
                   ...state,
-                  columnWidth,
-                }));
-              }}
-            >
-              <NumberInputField />
-              <NumberInputStepper>
-                <NumberIncrementStepper />
-                <NumberDecrementStepper />
-              </NumberInputStepper>
-            </NumberInput>
-          </InputGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>Column Height</FormLabel>
-          <InputGroup size="sm">
-            <NumberInput
-              value={state.columnHeight}
-              onChange={(valueString) => {
-                let columnHeight = parseFloat(valueString);
-                if (Number.isNaN(columnHeight)) {
-                  columnHeight = 0;
-                }
-                setState((state) => ({
-                  ...state,
-                  columnHeight,
+                  columnWidth: sideLength,
+                  columnHeight: sideLength,
                 }));
               }}
             >
@@ -1266,13 +1225,13 @@ const GridConfigurator = (props: {
                   input: {
                     mapId: map.id,
                     grid: {
-                      color: "rgba(0, 0, 0, 0.08)",
+                      color: "rgba(255, 255, 255, 0.6)",
                       columnWidth: state.columnWidth,
                       columnHeight: state.columnHeight,
                       offsetX: state.offsetX,
                       offsetY: state.offsetY,
                     },
-                    showGrid: map.showGrid,
+                    showGrid: true,
                     showGridToPlayers: map.showGridToPlayers,
                   },
                 },

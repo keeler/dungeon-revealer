@@ -2,6 +2,7 @@ import * as React from "react";
 import * as THREE from "three";
 import graphql from "babel-plugin-relay/macro";
 // import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
+import * as Icon from "./feather-icons";
 import {
   Canvas,
   PointerEvent,
@@ -10,10 +11,11 @@ import {
   useThree,
   ViewportData,
 } from "react-three-fiber";
+import { TokenShape } from "./canvas-draw-utilities";
 import { animated, useSpring, SpringValue, to } from "@react-spring/three";
 import { useGesture } from "react-use-gesture";
 import styled from "@emotion/styled/macro";
-import { darken, lighten } from "polished";
+import { darken, lighten, triangle } from "polished";
 import debounce from "lodash/debounce";
 import { getOptimalDimensions, loadImage } from "./util";
 import { useStaticRef } from "./hooks/use-static-ref";
@@ -33,6 +35,7 @@ import { useFragment, useSubscription } from "relay-hooks";
 import { buttonGroup, useControls, useCreateStore, LevaInputs } from "leva";
 import { levaPluginNoteReference } from "./leva-plugin/leva-plugin-note-reference";
 import { levaPluginTokenImage } from "./leva-plugin/leva-plugin-token-image";
+import { levaPluginIconPicker } from "./leva-plugin/leva-plugin-icon-picker";
 import { useMarkArea } from "./map-tools/player-map-tool";
 import { ContextMenuState, useShowContextMenu } from "./map-context-menu";
 import {
@@ -50,6 +53,9 @@ import { mapView_MapPingRenderer_MapFragment$key } from "./__generated__/mapView
 import { mapView_MapPingSubscription } from "./__generated__/mapView_MapPingSubscription.graphql";
 import { UpdateTokenContext } from "./update-token-context";
 import { IsDungeonMasterContext } from "./is-dungeon-master-context";
+import { ThreeLine } from "./three-line";
+import { calculateSquareCoordinates } from "./canvas-draw-utilities";
+import { Geometry } from "three-stdlib";
 
 type Vector2D = [number, number];
 
@@ -176,6 +182,7 @@ const TokenRendererMapTokenFragment = graphql`
     id
     x
     y
+    shape
     color
     radius
     label
@@ -224,7 +231,9 @@ const TokenRenderer = (props: {
   const columnWidth = props.columnWidth ?? 150;
 
   const store = useCreateStore();
-  const updateRadiusRef = React.useRef<null | ((radius: number) => void)>(null);
+  const updateRadiusRef = React.useRef<
+    null | ((gridSizeMultiplier: number, radiusMultiplier?: number) => void)
+  >(null);
   const [values, setValues] = useControls(
     () => ({
       position: {
@@ -261,6 +270,36 @@ const TokenRenderer = (props: {
           enqueueSave();
         },
       },
+      shape: levaPluginIconPicker({
+        label: "Shape",
+        value: token.shape,
+        options: [
+          {
+            value: TokenShape.circle,
+            icon: <Icon.Circle boxSize="20px" />,
+            label: null,
+          },
+          {
+            value: TokenShape.square,
+            icon: <Icon.Square boxSize="20px" />,
+            label: null,
+          },
+          {
+            value: TokenShape.cone,
+            icon: <Icon.ChevronLeft boxSize="20px" />,
+            label: null,
+          },
+        ],
+        onChange: (shape: string, _, { initial, fromPanel }) => {
+          if (initial || !fromPanel) {
+            return;
+          }
+          updateToken(props.id, {
+            shape,
+          });
+        },
+        transient: false,
+      }),
       radius: {
         type: LevaInputs.NUMBER,
         label: "Size",
@@ -298,12 +337,45 @@ const TokenRenderer = (props: {
       },
       radiusOptions: buttonGroup({
         label: null,
+        opts:
+          token.shape === TokenShape.cone
+            ? {
+                "15ft": () => updateRadiusRef.current?.(1),
+                "20ft": () => updateRadiusRef.current?.(20 / 15),
+                "30ft": () => updateRadiusRef.current?.(30 / 15),
+                "45ft": () => updateRadiusRef.current?.(45 / 15),
+                "60ft": () => updateRadiusRef.current?.(60 / 15),
+                "90ft": () => updateRadiusRef.current?.(90 / 15),
+                "120ft": () => updateRadiusRef.current?.(120 / 15),
+                "150ft": () => updateRadiusRef.current?.(150 / 15),
+              }
+            : token.shape === TokenShape.square
+            ? {
+                "5ft": () => updateRadiusRef.current?.(1 / 2),
+                "10ft": () => updateRadiusRef.current?.(2 / 2),
+                "15ft": () => updateRadiusRef.current?.(3 / 2),
+                "20ft": () => updateRadiusRef.current?.(4 / 2),
+                "30ft": () => updateRadiusRef.current?.(6 / 2),
+                "40ft": () => updateRadiusRef.current?.(8 / 2),
+                "50ft": () => updateRadiusRef.current?.(10 / 2),
+                "60ft": () => updateRadiusRef.current?.(12 / 2),
+              }
+            : {
+                "5ft": () => updateRadiusRef.current?.(1 / 1),
+                "10ft": () => updateRadiusRef.current?.(2 / 1),
+                "15ft": () => updateRadiusRef.current?.(3 / 1),
+                "20ft": () => updateRadiusRef.current?.(4 / 1),
+                "30ft": () => updateRadiusRef.current?.(6 / 1),
+                "40ft": () => updateRadiusRef.current?.(8 / 1),
+                "50ft": () => updateRadiusRef.current?.(10 / 1),
+                "60ft": () => updateRadiusRef.current?.(12 / 1),
+              },
+      }),
+      radiusMultipliers: buttonGroup({
+        label: null,
         opts: {
-          "0.25x": () => updateRadiusRef.current?.(0.25),
-          "0.5x": () => updateRadiusRef.current?.(0.5),
-          "1x": () => updateRadiusRef.current?.(1),
-          "2x": () => updateRadiusRef.current?.(2),
-          "3x": () => updateRadiusRef.current?.(3),
+          "1/2x": () => updateRadiusRef.current?.(0, 0.5),
+          "2x": () => updateRadiusRef.current?.(0, 2),
         },
       }),
       rotation: {
@@ -439,17 +511,25 @@ const TokenRenderer = (props: {
         transient: false,
       }),
     }),
-    { store }
+    { store },
+    [token.shape]
   );
+
   React.useEffect(() => {
-    updateRadiusRef.current = (value) => {
-      const radius = (columnWidth / 2) * value * 0.9;
+    updateRadiusRef.current = (
+      gridSizeMultiplier: number,
+      radiusMultiplier?: number
+    ) => {
+      const oldRadius = token.radius;
+      const radius = radiusMultiplier
+        ? oldRadius * radiusMultiplier
+        : columnWidth * gridSizeMultiplier;
       setValues({ radius });
       updateToken(props.id, {
         radius,
       });
     };
-  });
+  }, [token.radius]);
 
   React.useEffect(() => {
     const values: Record<string, any> = {
@@ -688,41 +768,88 @@ const TokenRenderer = (props: {
   const color =
     isHover && isMovable ? lighten(0.1, values.color) : values.color;
   const textLabel = values.text;
+
+  const squarePoints = calculateSquareCoordinates(
+    [0, 0],
+    initialRadius * 2
+  ).map((p) => [...p, 0] as [number, number, number]);
+  squarePoints.push(squarePoints[0]);
+
+  // Make cones grow faster.
+  const triangleRadius = initialRadius * 1.5;
+
   return (
     <>
       <animated.group
         position={animatedProps.position}
         scale={animatedProps.circleScale}
         renderOrder={LayerRenderOrder.token}
+        rotation={animatedProps.rotation.to<[number, number, number]>(
+          (value) => [
+            0,
+            0,
+            (-value * Math.PI) / 180, // Convert degrees to radians
+          ]
+        )}
       >
-        {values.tokenImageId && token.tokenImage ? null : (
-          <>
+        {!(values.tokenImageId && token.tokenImage) &&
+          token.shape === TokenShape.circle && (
+            <>
+              <mesh>
+                <circleBufferGeometry
+                  attach="geometry"
+                  args={[initialRadius, 128]}
+                />
+                <meshStandardMaterial
+                  attach="material"
+                  color={color}
+                  transparent={true}
+                  opacity={values.isVisibleForPlayers ? 0.7 : 0.5}
+                />
+              </mesh>
+              <mesh>
+                <ringBufferGeometry
+                  attach="geometry"
+                  args={[initialRadius * (1 - 0.05), initialRadius, 128]}
+                />
+                <meshStandardMaterial
+                  attach="material"
+                  color={darken(0.1, color)}
+                  opacity={values.isVisibleForPlayers ? 0.7 : 0.5}
+                  transparent={true}
+                />
+              </mesh>
+            </>
+          )}
+        {!(values.tokenImageId && token.tokenImage) &&
+          token.shape === TokenShape.square && (
             <mesh>
-              <circleBufferGeometry
+              <planeBufferGeometry
                 attach="geometry"
-                args={[initialRadius, 128]}
+                args={[initialRadius * 2, initialRadius * 2]}
               />
               <meshStandardMaterial
                 attach="material"
                 color={color}
                 transparent={true}
-                opacity={values.isVisibleForPlayers ? 1 : 0.5}
+                opacity={values.isVisibleForPlayers ? 0.7 : 0.5}
               />
             </mesh>
-            <mesh>
-              <ringBufferGeometry
-                attach="geometry"
-                args={[initialRadius * (1 - 0.05), initialRadius, 128]}
-              />
-              <meshStandardMaterial
-                attach="material"
-                color={darken(0.1, color)}
-                opacity={values.isVisibleForPlayers ? 1 : 0.5}
-                transparent={true}
-              />
-            </mesh>
-          </>
-        )}
+          )}
+        {!(values.tokenImageId && token.tokenImage) &&
+          token.shape === TokenShape.cone && (
+            <ThreeLine
+              color={color}
+              points={[
+                [0, 0, 0],
+                [triangleRadius * 2, triangleRadius, 0],
+                [triangleRadius * 2, -triangleRadius, 0],
+                // repeat to close loop
+                [0, 0, 0],
+              ]}
+              lineWidth={2}
+            />
+          )}
         {tokenSelection.isSelected ? (
           <mesh renderOrder={LayerRenderOrder.outline}>
             <ringBufferGeometry

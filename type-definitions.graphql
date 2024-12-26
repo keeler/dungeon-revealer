@@ -331,6 +331,7 @@ type MapToken {
   id: ID!
   x: Float!
   y: Float!
+  shape: String!
   rotation: Float!
   radius: Float!
   color: String!
@@ -614,6 +615,7 @@ input MapTokenAddManyInput {
 input MapTokenAddManyTokenInput {
   x: Float!
   y: Float!
+  shape: String!
   color: String!
   label: String!
   radius: Float

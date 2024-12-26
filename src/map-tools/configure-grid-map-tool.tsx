@@ -96,7 +96,7 @@ const CompleteGrid = (props: {
     const elements: React.ReactElement[] = [];
     let currentY = props.position[1] - props.columnHeight;
 
-    const lineWidth = 0.1;
+    const lineWidth = 1;
     const gridColor = "red";
     let i = 0;
 

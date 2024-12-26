@@ -64,6 +64,7 @@ export const addManyMapToken = (params: {
   tokenProps: Array<{
     x?: number | null;
     y?: number | null;
+    shape?: null | string;
     radius?: null | number;
     rotation?: null | number;
     color?: string | null;

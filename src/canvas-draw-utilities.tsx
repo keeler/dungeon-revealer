@@ -10,6 +10,12 @@ export enum BrushShape {
   circle = "circle",
 }
 
+export enum TokenShape {
+  circle = "circle",
+  square = "square",
+  cone = "cone",
+}
+
 type Vector2D = [number, number];
 
 const setCompositeMode = (

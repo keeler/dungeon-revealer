@@ -114,6 +114,7 @@ export const ContextMenuRenderer = (props: {
           tokens.push({
             x: state.imagePosition.x + centerRelativeX,
             y: state.imagePosition.y + centerRelativeY,
+            shape: token.shape,
             rotation: token.rotation,
             color: token.color,
             label: token.label,

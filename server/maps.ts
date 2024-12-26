@@ -9,6 +9,9 @@ const prepareToken = (token: { [key: string]: unknown }) => {
   if (typeof token.type !== "string") {
     token.type = "entity";
   }
+  if (typeof token.tokenShape !== "string") {
+    token.shape = "circle";
+  }
   if (typeof token.title !== "string") {
     token.title = "";
   }
@@ -44,6 +47,7 @@ export type MapGridEntity = {
 
 export type MapTokenEntity = {
   id: string;
+  shape: string;
   radius: number;
   rotation: number;
   color: string;
@@ -353,6 +357,7 @@ export class Maps {
     tokens: Array<{
       x?: number | null;
       y?: number | null;
+      shape?: string | null;
       radius?: null | number;
       color?: string | null;
       label?: string | null;
@@ -378,6 +383,7 @@ export class Maps {
             id: randomUUID(),
             x: props.x ?? 0,
             y: props.y ?? 0,
+            shape: props.shape ?? "circle",
             radius: props.radius ?? (map.grid?.columnWidth ?? 50) / 2,
             color: props.color ?? "red",
             label: props.label ?? "A",
@@ -411,6 +417,7 @@ export class Maps {
       type,
       x,
       y,
+      shape,
       radius,
       color,
       label,
@@ -426,6 +433,7 @@ export class Maps {
       type?: string;
       x?: number;
       y?: number;
+      shape?: string;
       radius?: number;
       color?: number;
       label?: string;
@@ -477,6 +485,9 @@ export class Maps {
         }
         if (y !== undefined) {
           token.y = y;
+        }
+        if (shape != undefined) {
+          token.shape = shape;
         }
         if (radius !== undefined) {
           token.radius = radius;
