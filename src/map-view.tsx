@@ -228,7 +228,7 @@ const TokenRenderer = (props: {
     rotation: 0,
   }).current;
 
-  const columnWidth = props.columnWidth ?? 150;
+  const columnWidth = props.columnWidth ?? 50;
 
   const store = useCreateStore();
   const updateRadiusRef = React.useRef<
@@ -905,7 +905,7 @@ const TokenRenderer = (props: {
             text={textLabel}
             position={undefined}
             backgroundColor={token.tokenImage ? "#ffffff" : null}
-            fontSize={(columnWidth * sharedMapState.ratio) / 930}
+            fontSize={(columnWidth * sharedMapState.ratio) / 300}
           />
         </animated.group>
       ) : null}
