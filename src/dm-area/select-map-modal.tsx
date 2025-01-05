@@ -172,19 +172,33 @@ const MapList = (props: {
 
   React.useEffect(() => props.reportMapsConnectionId(data.maps.__id));
 
+  const mapInfos = data.maps.edges
+    .map((edge) => edge.node)
+    .sort((a, b) => {
+      if (a.id == props.activeMapId) {
+        return -1;
+      } else if (b.id == props.activeMapId) {
+        return 1;
+      } else if (a.title < b.title) {
+        return -1;
+      } else if (a.title > b.title) {
+        return 1;
+      }
+      return 0;
+    });
+
   return (
     <ScrollableList.List onScroll={onScroll}>
-      {data.maps.edges.map((item) => (
-        <ScrollableList.ListItem key={item.node.id}>
+      {mapInfos.map((map) => (
+        <ScrollableList.ListItem key={map.id}>
           <ScrollableList.ListItemButton
             tabIndex={1}
-            isActive={item.node.id === props.activeMapId}
+            isActive={map.id === props.activeMapId}
             onClick={() => {
-              props.setActiveMapId(item.node.id);
+              props.setActiveMapId(map.id);
             }}
           >
-            {item.node.title}{" "}
-            {item.node.id === props.liveMapId ? "(live)" : null}
+            {map.title} {map.id === props.liveMapId ? "(live)" : null}
           </ScrollableList.ListItemButton>
         </ScrollableList.ListItem>
       ))}
