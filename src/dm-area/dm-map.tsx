@@ -441,6 +441,11 @@ const TokenMarkerSettings = (): React.ReactElement => {
             icon: <Icon.ChevronLeft boxSize="20px" />,
             label: "Cone",
           },
+          {
+            value: TokenShape.line,
+            icon: <Icon.Minus boxSize="20px" />,
+            label: "Line",
+          },
         ],
         onChange: (tokenShape, _, { initial }) => {
           if (initial) {

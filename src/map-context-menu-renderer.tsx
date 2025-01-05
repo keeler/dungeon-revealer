@@ -35,6 +35,7 @@ const MapFragment = graphql`
       id
       x
       y
+      shape
       rotation
       color
       label

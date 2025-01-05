@@ -54,8 +54,10 @@ import { mapView_MapPingSubscription } from "./__generated__/mapView_MapPingSubs
 import { UpdateTokenContext } from "./update-token-context";
 import { IsDungeonMasterContext } from "./is-dungeon-master-context";
 import { ThreeLine } from "./three-line";
-import { calculateSquareCoordinates } from "./canvas-draw-utilities";
-import { Geometry } from "three-stdlib";
+import {
+  calculateSquareCoordinates,
+  calculateRectCoordinates,
+} from "./canvas-draw-utilities";
 
 type Vector2D = [number, number];
 
@@ -277,17 +279,22 @@ const TokenRenderer = (props: {
           {
             value: TokenShape.circle,
             icon: <Icon.Circle boxSize="20px" />,
-            label: null,
+            label: "",
           },
           {
             value: TokenShape.square,
             icon: <Icon.Square boxSize="20px" />,
-            label: null,
+            label: "",
           },
           {
             value: TokenShape.cone,
             icon: <Icon.ChevronLeft boxSize="20px" />,
-            label: null,
+            label: "",
+          },
+          {
+            value: TokenShape.line,
+            icon: <Icon.Minus boxSize="20px" />,
+            label: "",
           },
         ],
         onChange: (shape: string, _, { initial, fromPanel }) => {
@@ -311,13 +318,20 @@ const TokenRenderer = (props: {
             return;
           }
           const newRadius = sharedMapState.helper.size.fromImageToThree(value);
-          setAnimatedProps({
-            circleScale: [
-              newRadius / initialRadius,
-              newRadius / initialRadius,
-              1,
-            ],
-          });
+          if (token.shape !== TokenShape.line) {
+            setAnimatedProps({
+              circleScale: [
+                newRadius / initialRadius,
+                newRadius / initialRadius,
+                1,
+              ],
+            });
+          } else {
+            // For lines, don't adjust height; it should be constant
+            setAnimatedProps({
+              circleScale: [newRadius / initialRadius, 1, 1],
+            });
+          }
 
           if (!fromPanel) {
             return;
@@ -359,6 +373,11 @@ const TokenRenderer = (props: {
                 "40ft": () => updateRadiusRef.current?.(8 / 2),
                 "50ft": () => updateRadiusRef.current?.(10 / 2),
                 "60ft": () => updateRadiusRef.current?.(12 / 2),
+              }
+            : token.shape === TokenShape.line
+            ? {
+                "30ft": () => updateRadiusRef.current?.(3 / 2),
+                "50ft": () => updateRadiusRef.current?.(5 / 2),
               }
             : {
                 "5ft": () => updateRadiusRef.current?.(1 / 1),
@@ -573,6 +592,9 @@ const TokenRenderer = (props: {
   const initialRadius = useStaticRef(() =>
     sharedMapState.helper.size.fromImageToThree(Math.max(1, token.radius))
   );
+  const adjustedColumnWidth = useStaticRef(() =>
+    sharedMapState.helper.size.fromImageToThree(Math.max(1, columnWidth))
+  );
 
   const isDungeonMaster = React.useContext(IsDungeonMasterContext);
   const isMovable =
@@ -769,12 +791,6 @@ const TokenRenderer = (props: {
     isHover && isMovable ? lighten(0.1, values.color) : values.color;
   const textLabel = values.text;
 
-  const squarePoints = calculateSquareCoordinates(
-    [0, 0],
-    initialRadius * 2
-  ).map((p) => [...p, 0] as [number, number, number]);
-  squarePoints.push(squarePoints[0]);
-
   // Make cones grow faster.
   const triangleRadius = initialRadius * 1.5;
 
@@ -849,6 +865,21 @@ const TokenRenderer = (props: {
               ]}
               lineWidth={2}
             />
+          )}
+        {!(values.tokenImageId && token.tokenImage) &&
+          token.shape === TokenShape.line && (
+            <mesh>
+              <planeBufferGeometry
+                attach="geometry"
+                args={[initialRadius * 4, adjustedColumnWidth]}
+              />
+              <meshStandardMaterial
+                attach="material"
+                color={color}
+                transparent={true}
+                opacity={values.isVisibleForPlayers ? 0.7 : 0.5}
+              />
+            </mesh>
           )}
         {tokenSelection.isSelected ? (
           <mesh renderOrder={LayerRenderOrder.outline}>

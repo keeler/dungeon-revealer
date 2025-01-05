@@ -14,6 +14,7 @@ export enum TokenShape {
   circle = "circle",
   square = "square",
   cone = "cone",
+  line = "line",
 }
 
 type Vector2D = [number, number];
