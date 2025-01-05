@@ -26,7 +26,7 @@ export const ListItemButton = styled.button<{ isActive?: boolean }>`
   padding-left: 13px;
   padding-right: 20px;
   background-color: ${(p) =>
-    p.isActive ? "rgba(0, 0, 0, 0.04)" : "rgba(255, 255, 255, 1)"};
+    p.isActive ? "rgba(230, 37, 104, 0.5)" : "rgba(255, 255, 255, 1)"};
   color: ${(p) => (p.isActive ? "#044e54" : "rgba(148, 160, 175, 1)")};
 
   &:focus,
@@ -36,7 +36,7 @@ export const ListItemButton = styled.button<{ isActive?: boolean }>`
   }
 
   border-left: ${(p) =>
-    p.isActive ? "7px solid #BCCCDC" : "7px solid transparent"};
+    p.isActive ? "7px solid #e62568" : "7px solid transparent"};
 
   outline: none;
 `;

@@ -174,18 +174,7 @@ const MapList = (props: {
 
   const mapInfos = data.maps.edges
     .map((edge) => edge.node)
-    .sort((a, b) => {
-      if (a.id == props.activeMapId) {
-        return -1;
-      } else if (b.id == props.activeMapId) {
-        return 1;
-      } else if (a.title < b.title) {
-        return -1;
-      } else if (a.title > b.title) {
-        return 1;
-      }
-      return 0;
-    });
+    .sort((a, b) => (a.title < b.title ? -1 : a.title > b.title ? 1 : 0));
 
   return (
     <ScrollableList.List onScroll={onScroll}>
@@ -198,7 +187,7 @@ const MapList = (props: {
               props.setActiveMapId(map.id);
             }}
           >
-            {map.title} {map.id === props.liveMapId ? "(live)" : null}
+            {map.id === props.liveMapId ? "(LIVE)" : null} {map.title}
           </ScrollableList.ListItemButton>
         </ScrollableList.ListItem>
       ))}
