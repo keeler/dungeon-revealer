@@ -464,6 +464,7 @@ export const SelectMapModal = ({
       {modalState ? (
         modalState.type === ModalType.EDIT_TITLE ? (
           <ChangeMapTitleModal
+            activeMap={activeMapResponse.data.map}
             closeModal={() => setModalState(null)}
             updateMapTitle={(newTitle) =>
               mapUpdateTitle({
@@ -665,10 +666,20 @@ const CreateNewMapModal = ({
 };
 
 const ChangeMapTitleModal: React.FC<{
+  activeMap: selectMapModal_ActiveMap_MapFragment$key;
   closeModal: () => void;
   updateMapTitle: (newTitle: string) => void;
-}> = ({ closeModal, updateMapTitle: updateMap }): React.ReactElement => {
-  const [inputValue, setInputValue] = React.useState("");
+}> = ({
+  activeMap: activeMapFragment,
+  closeModal,
+  updateMapTitle: updateMap,
+}): React.ReactElement => {
+  const activeMap = useFragment(
+    SelectMapModal_ActiveMap_MapFragment,
+    activeMapFragment
+  );
+
+  const [inputValue, setInputValue] = React.useState(activeMap.title);
   const [error, setError] = React.useState<string | null>(null);
   const onChangeInputValue = React.useCallback(
     (ev) => {
