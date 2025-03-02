@@ -199,28 +199,29 @@ const PlayerMap = ({
       >
         <FlatContextProvider
           value={[
-            [
-              MarkAreaToolContext.Provider,
-              {
-                value: {
-                  onMarkArea: ([x, y]) => {
-                    if (currentMap.data?.activeMap) {
-                      mapPing({
-                        variables: {
-                          input: {
-                            mapId: currentMap.data.activeMap.id,
-                            x,
-                            y,
-                          },
-                        },
-                      });
-                    }
-                  },
-                },
-              },
-            ] as ComponentWithPropsTuple<
-              React.ComponentProps<typeof MarkAreaToolContext.Provider>
-            >,
+            // DISABLE player map ping.
+            // [
+            //   MarkAreaToolContext.Provider,
+            //   {
+            //     value: {
+            //       onMarkArea: ([x, y]) => {
+            //         if (currentMap.data?.activeMap) {
+            //           mapPing({
+            //             variables: {
+            //               input: {
+            //                 mapId: currentMap.data.activeMap.id,
+            //                 x,
+            //                 y,
+            //               },
+            //             },
+            //           });
+            //         }
+            //       },
+            //     },
+            //   },
+            // ] as ComponentWithPropsTuple<
+            //   React.ComponentProps<typeof MarkAreaToolContext.Provider>
+            // >,
             [
               UpdateTokenContext.Provider,
               {
