@@ -936,7 +936,7 @@ const TokenRenderer = (props: {
             text={textLabel}
             position={undefined}
             backgroundColor={token.tokenImage ? "#ffffff" : null}
-            fontSize={(columnWidth * sharedMapState.ratio) / 300}
+            fontSize={(columnWidth * sharedMapState.ratio) / 500}
           />
         </animated.group>
       ) : null}
