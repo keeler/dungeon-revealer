@@ -7,7 +7,9 @@ export default defineConfig({
   plugins: [reactRefresh(), macrosPlugin()],
 
   server: {
+    host: "0.0.0.0",
     port: 4000,
+    open: true,
     proxy: {
       "/api/socket.io": { target: "ws://localhost:3000", ws: true },
       "/api": "http://localhost:3000",
